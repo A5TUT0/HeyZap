@@ -1,18 +1,26 @@
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react";
-import { io } from "socket.io-client";
+import Chat from "./components/Chat";
 
 export default function App() {
-
-  const socket = io('http://localhost:3000');
   return (
-    <header>
+    <div className="h-screen bg-gray-900 relative">
       <SignedOut>
-        <SignInButton />
-
+        <div className="flex items-center justify-center h-full">
+          <SignInButton />
+        </div>
       </SignedOut>
+
       <SignedIn>
-        <UserButton />
+        {/* Botón de usuario en la esquina superior izquierda */}
+        <div className="absolute top-4 left-4">
+          <UserButton />
+        </div>
+
+        {/* Contenedor que ocupa toda la pantalla y centra el contenido */}
+        <div className="flex items-center justify-center h-full w-full">
+          <Chat />
+        </div>
       </SignedIn>
-    </header>
+    </div>
   );
 }
