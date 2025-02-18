@@ -8,3 +8,20 @@ services:
         - action: sync
           path: ./frontend
           target: /app
+  backend:
+    build: ./backend
+    ports:
+      - "3000:3000"
+    develop:
+      watch:
+        - action: sync
+          path: ./backend
+          target: /app
+  mongodb:
+    image: mongo:6-jammy
+    ports:
+      - "27017:27017"
+    volumes:
+      - dbdata6:/data/db
+volumes:
+  dbdata6:
