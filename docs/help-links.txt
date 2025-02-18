@@ -1,0 +1,11 @@
+Video de midudev Live chat
+https://www.youtube.com/watch?v=WpbBhTx5R9Q&t=1506s
+
+docker compose docu https://docs.docker.com/compose/gettingstarted/
+
+frontend components https://uiverse.io/elements
+
+deep seek API https://platform.deepseek.com/usage
+
+
+
