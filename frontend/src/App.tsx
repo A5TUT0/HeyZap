@@ -1,8 +1,9 @@
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react";
 import Chat from "./components/Chat";
+
 export default function App() {
   return (
-    <div className="h-screen bg-gray-900 relative">
+    <div className="h-screen flex items-center justify-center bg-gray-900">
       <SignedOut>
         <div className="flex items-center justify-center h-full">
           <SignInButton />
@@ -14,9 +15,7 @@ export default function App() {
           <UserButton />
         </div>
 
-        <div className="flex items-center justify-center h-full w-full">
-          <Chat />
-        </div>
+        <Chat />
       </SignedIn>
     </div>
   );
