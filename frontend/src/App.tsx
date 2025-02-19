@@ -1,5 +1,6 @@
 import { SignedIn, SignedOut, SignInButton, UserButton } from "@clerk/clerk-react";
 import Chat from "./components/Chat";
+import ListOfUserActive from "./components/ListOfUserActive";
 
 export default function App() {
   return (
@@ -14,7 +15,9 @@ export default function App() {
         <div className="absolute top-4 left-4">
           <UserButton />
         </div>
-
+        <div className="flex justify-center items-center h-full m-5">
+          <ListOfUserActive />
+        </div>
         <Chat />
       </SignedIn>
     </div>

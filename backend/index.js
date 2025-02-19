@@ -20,6 +20,7 @@ mongoose.connect("mongodb://mongodb:27017/chatdb", {
 });
 
 const db = mongoose.connection;
+const activeUsers = new Set();
 db.on("error", console.error.bind(console, "MongoDB connection error:"));
 db.once("open", () => {
   console.log("Connected to MongoDB");
@@ -47,6 +48,10 @@ const io = new Server(server, {
 io.on("connection", async (socket) => {
   console.log("A user connected");
 
+  socket.on("user connected", async (username) => {
+    activeUsers.add(username);
+    io.emit("active users", Array.from(activeUsers));
+  });
   try {
     const messages = await Message.find().sort({ timestamp: -1 }).limit(50);
     socket.emit("previous messages", messages);
@@ -57,7 +62,10 @@ io.on("connection", async (socket) => {
   socket.on("disconnect", () => {
     console.log("User disconnected");
   });
-
+  socket.on("user disconnected", (userId) => {
+    activeUsers.delete(userId);
+    io.emit("Active Users", Array.from(activeUsers));
+  });
   socket.on("chat message", async ({ senderid, content, senderName }) => {
     try {
       console.log("Sender: " + senderid);
