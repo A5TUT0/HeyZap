@@ -7,7 +7,7 @@
 - [x] (0-1 Punkt) Der Benutzername kann angepasst werden.
 - [x] (0-1 Punkt) Der Client erlaubt es, sich in einen Chatraum zu verbinden und Nachrichten zu lesen.  
        Bestehende Nachrichten werden beim Start automatisch geladen.
-- [ ] (0-1 Punkt) Der Client erlaubt es, sich in einen Chatraum zu verbinden und darin aktive Teilnehmer einzusehen.
+- [x] (0-1 Punkt) Der Client erlaubt es, sich in einen Chatraum zu verbinden und darin aktive Teilnehmer einzusehen.
 - [x] (0-1 Punkt) Der Client bekommt in Echtzeit neue Nachrichten mitgeteilt, ohne dass der Benutzer selbst aktualisieren muss.
 
 ## 📌 (0-3 Punkte) Backend Komponente
