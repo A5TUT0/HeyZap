@@ -8,7 +8,8 @@ const userSchema = new mongoose.Schema({
 });
 
 const messageSchema = new mongoose.Schema({
-  sender: { type: String, required: true },
+  senderID: { type: String, required: true },
+  senderName: { type: String, required: true },
   content: { type: String, required: true },
   timestamp: { type: Date, default: Date.now },
 });
