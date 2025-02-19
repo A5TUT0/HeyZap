@@ -1,11 +1,11 @@
-## Prerequisites
+## **Prerequisites**
 
 Before running the application, make sure you have installed:
 
 - **Docker** and **Docker Compose**
-- A modern web browser
+- An updated and compatible web browser
 
-## Installation and Execution
+## **Installation and Execution**
 
 1. Clone the repository:
 
@@ -25,7 +25,12 @@ Before running the application, make sure you have installed:
    - **Backend:** `http://localhost:3000`
    - **MongoDB Compass:** Connect using `mongodb://localhost:27017/chatdb`
 
-## Technologies Used
+## **User Registration**
+
+To use the application, an email is required. If you prefer not to use personal information, you can generate a temporary email through [Temp Mail](https://temp-mail.org/en/).  
+You can also use your real email, but it is not mandatory.
+
+## **Technologies Used**
 
 ### **Frontend**
 
