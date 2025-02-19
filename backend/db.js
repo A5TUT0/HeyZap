@@ -9,7 +9,7 @@ const userSchema = new mongoose.Schema({
 });
 
 const messageSchema = new mongoose.Schema({
-  senderID: { type: String, required: true },
+  senderid: { type: String, required: true },
   senderName: { type: String, required: true },
   content: { type: String, required: true },
   timestamp: { type: Date, default: Date.now },

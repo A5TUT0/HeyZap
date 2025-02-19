@@ -1,5 +1,5 @@
 import { io, Socket } from "socket.io-client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { useUser } from "@clerk/clerk-react";
 import { AnimatePresence, motion } from "framer-motion";
 
@@ -10,16 +10,20 @@ export default function Chat() {
         { senderName: string; senderid: string; content: string }[]
     >([]);
 
+    const messagesEndRef = useRef<HTMLDivElement>(null);
+
     useEffect(() => {
         const newSocket = io("http://localhost:3000");
         setSocket(newSocket);
 
         newSocket.on("previous messages", (loadedMessages) => {
             setMessages(loadedMessages.reverse());
+            setTimeout(scrollToBottom, 100);
         });
 
         newSocket.on("chat message", (message) => {
             setMessages((prev) => [...prev, message]);
+            setTimeout(scrollToBottom, 100);
         });
 
         return () => {
@@ -47,25 +51,21 @@ export default function Chat() {
         }
     };
 
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    };
+
     return (
         <div className="flex flex-col w-full max-w-lg h-[80vh] p-4 bg-gray-800 rounded-2xl shadow-lg">
-            {/* Cabecera del chat (puedes personalizarla más si deseas) */}
             <div className="pb-2 border-b border-gray-700 mb-4 text-center">
                 <h2 className="text-xl font-bold text-white">HeyZap</h2>
             </div>
 
-            {/* Contenedor de los mensajes */}
             <div className="flex-1 overflow-y-auto bg-gray-700 p-4 rounded-xl mb-4">
                 <AnimatePresence>
                     {messages.map((msg, idx) => {
-                        // Verificar si es tu propio mensaje
-                        const isOwnMessage = user && msg.senderid === user.id;
-
-                        // Avatar (si el usuario está autenticado, muestra su foto; si no, muestra un placeholder)
-                        // O bien, puedes usar un placeholder para todos, y solo para el usuario el profileImageUrl
-                        const avatarUrl = isOwnMessage
-                            ? user?.setProfileImage || "https://via.placeholder.com/40"
-                            : "https://via.placeholder.com/40";
+                        const isOwnMessage = user?.id === msg.senderid;
+                        console.log(`Mensaje de ${msg.senderName} - senderid: ${msg.senderid}`);
 
                         return (
                             <motion.div
@@ -74,48 +74,23 @@ export default function Chat() {
                                 animate={{ opacity: 1, y: 0 }}
                                 exit={{ opacity: 0, y: 10 }}
                                 transition={{ duration: 0.3 }}
-                                className={`flex items-end mb-4 ${isOwnMessage ? "justify-end" : "justify-start"
+                                className={`flex w-full mb-4 ${isOwnMessage ? "justify-end" : "justify-start"
                                     }`}
                             >
-                                {/* Si es mensaje de otro, avatar a la izquierda; si es tuyo, avatar a la derecha */}
-                                {!isOwnMessage && (
-                                    <img
-                                        src={avatarUrl}
-                                        alt="avatar"
-                                        className="w-10 h-10 rounded-full mr-3"
-                                    />
-                                )}
                                 <div
-                                    className={`relative p-3 rounded-xl max-w-xs text-white ${isOwnMessage ? "bg-blue-600" : "bg-gray-600"
+                                    className={`p-3 rounded-xl max-w-[70%] text-white ${isOwnMessage ? "bg-blue-600 text-right" : "bg-gray-600 text-left"
                                         }`}
                                 >
-                                    {/* Nombre del usuario que envió el mensaje */}
                                     <p className="text-sm text-gray-300 mb-1">{msg.senderName}</p>
-                                    {/* Contenido del mensaje */}
-                                    <p>{msg.content}</p>
-                                    {/* Flecha que sale del globo de mensaje */}
-                                    <span
-                                        className={`
-                      absolute top-1/2 w-4 h-4 transform rotate-45
-                      ${isOwnMessage ? "bg-blue-600 -right-1" : "bg-gray-600 -left-1"}
-                    `}
-                                        style={{ marginTop: "-8px" }}
-                                    ></span>
+                                    <p className="break-words">{msg.content}</p>
                                 </div>
-                                {isOwnMessage && (
-                                    <img
-                                        src={avatarUrl}
-                                        alt="avatar"
-                                        className="w-10 h-10 rounded-full ml-3"
-                                    />
-                                )}
                             </motion.div>
                         );
                     })}
                 </AnimatePresence>
+                <div ref={messagesEndRef} />
             </div>
 
-            {/* Formulario para enviar mensajes */}
             <form className="flex items-center space-x-2" onSubmit={sendMessage}>
                 <input
                     type="text"

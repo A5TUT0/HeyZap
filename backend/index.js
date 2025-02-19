@@ -110,7 +110,7 @@ io.on("connection", async (socket) => {
     try {
       console.log("Sender: " + senderid);
       const message = new Message({
-        senderID: senderid,
+        senderid: senderid,
         senderName: senderName,
         content: content,
       });
