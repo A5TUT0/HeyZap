@@ -6,6 +6,7 @@ import dotenv from "dotenv";
 dotenv.config();
 import cors from "cors";
 import mongoose from "mongoose";
+import { Message } from "./db.js";
 
 const port = process.env.PORT || 3000;
 
@@ -48,9 +49,17 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     console.log("user disconnected");
   });
-  socket.on("chat message", (msg) => {
-    io.emit("chat message", msg);
-    console.log("message: " + msg);
+  socket.on("chat message", async ({ senderid, content }) => {
+    try {
+      console.log("Sender: " + senderid);
+      const message = new Message({ sender: senderid, content: content });
+      await message.save();
+
+      io.emit("chat message", content);
+      console.log("Message saved: " + content);
+    } catch (error) {
+      console.error("Error saving message:", error);
+    }
   });
 });
 
