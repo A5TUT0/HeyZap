@@ -132,26 +132,6 @@ app.get("/", (req, res) => {
   res.send("server running");
 });
 
-app.get("/messages", async (req, res) => {
-  try {
-    const messages = await Message.find();
-    res.json(messages);
-  } catch (error) {
-    console.error("Error fetching messages:", error);
-    res.status(500).json({ error: "Error fetching messages" });
-  }
-});
-
-app.get("/users", async (req, res) => {
-  try {
-    const users = await User.find();
-    res.json(users);
-  } catch (error) {
-    console.error("Error fetching users:", error);
-    res.status(500).json({ error: "Error fetching users" });
-  }
-});
-
 server.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
