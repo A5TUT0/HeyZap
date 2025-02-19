@@ -1,7 +1,9 @@
 import { io, Socket } from "socket.io-client";
 import { useEffect, useState } from "react";
+import { useUser } from "@clerk/clerk-react";
 
 export default function Chat() {
+    const { user } = useUser();
     const [socket, setSocket] = useState<Socket | null>(null);
     const [messages, setMessages] = useState<string[]>([]);
 
@@ -11,6 +13,7 @@ export default function Chat() {
 
         newSocket.on("chat message", (message: string) => {
             setMessages((prev) => [...prev, message]);
+
         });
 
         return () => {
@@ -22,9 +25,12 @@ export default function Chat() {
         e.preventDefault();
         const input = e.currentTarget.querySelector("input");
         if (input.textContent === null) return Error("No se puede enviar un mensaje vacío");
-
-        if (input && socket) {
-            socket.emit("chat message", input.value);
+        if (!user) return;
+        if (socket) {
+            socket.emit("chat message", {
+                senderid: user.id,
+                content: input.value.trim(),
+            });
             input.value = "";
         }
     };
@@ -39,6 +45,7 @@ export default function Chat() {
                             className={`p-3 rounded-xl max-w-xs text-white ${idx % 2 === 0 ? "bg-blue-600" : "bg-gray-600"
                                 }`}
                         >
+                            <p>{user?.username}</p>
                             {msg}
                         </div>
                     ))}
