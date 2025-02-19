@@ -13,7 +13,7 @@
 ## 📌 (0-3 Punkte) Backend Komponente
 
 - [x] (0-1 Punkt) Das Backend verteilt Nachrichten an alle verbundenen Clients in Echtzeit.
-- [1/2] (0-1 Punkt) Das Backend speichert Benutzer & Nachrichten in der Datenbank.
+- [x] (0-1 Punkt) Das Backend speichert Benutzer & Nachrichten in der Datenbank.
 - [ ] (0-1 Punkt) Das Backend ist gegen unerlaubten Zugriff geschützt und ein Benutzer kann nur Aktionen für sich und in seinem Namen durchführen.
 
 ## 📌 (0-2 Punkte) Datenbank Komponente

@@ -7,7 +7,6 @@ dotenv.config();
 import cors from "cors";
 import mongoose from "mongoose";
 import { Message, User } from "./db.js";
-import { timeStamp } from "console";
 
 const port = process.env.PORT || 3000;
 
@@ -20,11 +19,13 @@ mongoose.connect("mongodb://mongodb:27017/chatdb", {
 });
 
 const db = mongoose.connection;
-const activeUsers = new Set();
+const activeUsers = new Map();
+
 db.on("error", console.error.bind(console, "MongoDB connection error:"));
 db.once("open", () => {
   console.log("Connected to MongoDB");
 });
+
 app.use(
   cors({
     origin: ["http://localhost:3000", "http://localhost:5173"],
@@ -45,13 +46,59 @@ const io = new Server(server, {
     credentials: true,
   },
 });
+
 io.on("connection", async (socket) => {
   console.log("A user connected");
 
-  socket.on("user connected", async (username) => {
-    activeUsers.add(username);
-    io.emit("active users", Array.from(activeUsers));
+  socket.on("user connected", async ({ userId, username, email }) => {
+    try {
+      let user = await User.findOne({ userId });
+
+      if (!user) {
+        user = new User({
+          userId,
+          username,
+          email,
+          lastActive: new Date(),
+        });
+        await user.save();
+        console.log(`Nuevo usuario guardado: ${username}`);
+      } else {
+        user.lastActive = new Date();
+        await user.save();
+      }
+
+      socket.data.userId = userId;
+      socket.data.username = username;
+
+      activeUsers.set(userId, username);
+      io.emit("active users", Array.from(activeUsers.values()));
+    } catch (error) {
+      console.error("Error guardando usuario:", error);
+    }
   });
+
+  socket.on("disconnect", async () => {
+    console.log("User disconnected");
+
+    const userId = socket.data.userId;
+    if (userId) {
+      activeUsers.delete(userId);
+
+      try {
+        const user = await User.findOne({ userId });
+        if (user) {
+          user.lastActive = new Date();
+          await user.save();
+        }
+      } catch (error) {
+        console.error("Error al actualizar el estado del usuario:", error);
+      }
+
+      io.emit("active users", Array.from(activeUsers.values()));
+    }
+  });
+
   try {
     const messages = await Message.find().sort({ timestamp: -1 }).limit(50);
     socket.emit("previous messages", messages);
@@ -59,13 +106,6 @@ io.on("connection", async (socket) => {
     console.error("Error fetching messages:", error);
   }
 
-  socket.on("disconnect", () => {
-    console.log("User disconnected");
-  });
-  socket.on("user disconnected", (userId) => {
-    activeUsers.delete(userId);
-    io.emit("Active Users", Array.from(activeUsers));
-  });
   socket.on("chat message", async ({ senderid, content, senderName }) => {
     try {
       console.log("Sender: " + senderid);
@@ -82,6 +122,7 @@ io.on("connection", async (socket) => {
       console.error("Error saving message:", error);
     }
   });
+
   socket.on("typing", () => {
     socket.broadcast.emit("typing");
   });
