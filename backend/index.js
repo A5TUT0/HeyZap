@@ -1,40 +1,23 @@
+import pg from "pg";
 import express from "express";
-import logger from "morgan";
 import { Server } from "socket.io";
 import { createServer } from "http";
 import dotenv from "dotenv";
 dotenv.config();
 import cors from "cors";
-import mongoose from "mongoose";
-import { Message, User } from "./db.js";
+
+const client = new pg.Client({
+  user: "admin",
+  password: "123456",
+  host: process.env.DB_HOST || "localhost",
+  port: "5432",
+  database: "heyzap",
+});
 
 const port = process.env.PORT || 3000;
 
 const app = express();
 const server = createServer(app);
-
-mongoose.connect("mongodb://mongodb:27017/chatdb", {
-  useNewUrlParser: true,
-  useUnifiedTopology: true,
-});
-
-const db = mongoose.connection;
-const activeUsers = new Map();
-
-db.on("error", console.error.bind(console, "MongoDB connection error:"));
-db.once("open", () => {
-  console.log("Connected to MongoDB");
-});
-
-app.use(
-  cors({
-    origin: ["http://localhost:3000", "http://localhost:5173"],
-    methods: ["GET", "POST"],
-    credentials: true,
-  })
-);
-
-app.use(logger("dev"));
 
 const io = new Server(server, {
   connectionStateRecovery: {
@@ -42,94 +25,54 @@ const io = new Server(server, {
   },
   cors: {
     origin: ["http://localhost:3000", "http://localhost:5173"],
-    methods: ["GET", "POST"],
+    methods: ["GET", "POST", "DELETE", "PUT"],
     credentials: true,
   },
 });
 
-io.on("connection", async (socket) => {
-  console.log("A user connected");
+client
+  .connect()
+  .then(() => {
+    console.log("Connected to PostgreSQL database");
 
-  socket.on("user connected", async ({ userId, username, email }) => {
-    try {
-      let user = await User.findOne({ userId });
+    // Execute SQL queries here
 
-      if (!user) {
-        user = new User({
-          userId,
-          username,
-          email,
-          lastActive: new Date(),
-        });
-        await user.save();
-        console.log(`Nuevo usuario guardado: ${username}`);
+    client.query("SELECT * FROM employees", (err, result) => {
+      if (err) {
+        console.error("Error executing query", err);
       } else {
-        user.lastActive = new Date();
-        await user.save();
+        console.log("Query result:", result.rows);
       }
-
-      socket.data.userId = userId;
-      socket.data.username = username;
-
-      activeUsers.set(userId, username);
-      io.emit("active users", Array.from(activeUsers.values()));
-    } catch (error) {
-      console.error("Error guardando usuario:", error);
-    }
+    });
+  })
+  .catch((err) => {
+    console.error("Error connecting to PostgreSQL database", err);
   });
 
-  socket.on("disconnect", async () => {
-    console.log("User disconnected");
+app.post("/register", async (req, res) => {
+  const { username, email, password } = req.body;
 
-    const userId = socket.data.userId;
-    if (userId) {
-      activeUsers.delete(userId);
-
-      try {
-        const user = await User.findOne({ userId });
-        if (user) {
-          user.lastActive = new Date();
-          await user.save();
-        }
-      } catch (error) {
-        console.error("Error al actualizar el estado del usuario:", error);
-      }
-
-      io.emit("active users", Array.from(activeUsers.values()));
-    }
-  });
+  const haschPassword = await bcrypt.hash(password, 10);
 
   try {
-    const messages = await Message.find().sort({ timestamp: -1 }).limit(50);
-    socket.emit("previous messages", messages);
-  } catch (error) {
-    console.error("Error fetching messages:", error);
+    const result = await client.query(
+      "INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING *",
+      [username, email, haschPassword]
+    );
+
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    console.error("Error registering user", err);
+    res.status(500).json({ error: "An error occurred" });
   }
-
-  socket.on("chat message", async ({ senderid, content, senderName }) => {
-    try {
-      console.log("Sender: " + senderid);
-      const message = new Message({
-        senderid: senderid,
-        senderName: senderName,
-        content: content,
-      });
-      await message.save();
-
-      io.emit("chat message", message);
-      console.log("Message saved: " + content);
-    } catch (error) {
-      console.error("Error saving message:", error);
-    }
-  });
-
-  socket.on("typing", () => {
-    socket.broadcast.emit("typing");
-  });
 });
 
-app.get("/", (req, res) => {
-  res.send("server running");
+io.on("connection", (socket) => {
+  console.log("A user connected");
+
+  socket.on("user connected", ({ userId, username, email }) => {
+    console.log("User connected", userId, username, email);
+  });
 });
 
 server.listen(port, () => {

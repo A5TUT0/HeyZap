@@ -1,0 +1,48 @@
+services:
+  frontend:
+    build: ./frontend
+    ports:
+      - "5173:5173"
+    networks:
+      - main
+    depends_on:
+      - backend
+
+  backend:
+    build: ./backend
+    ports:
+      - "3000:3000"
+    networks:
+      - main
+    environment:
+      - DB_HOST=db
+    depends_on:
+      - db
+
+  db:
+    image: postgres:latest
+    restart: always
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: 123456
+      POSTGRES_DB: heyzap
+    networks:
+      - main
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+
+  adminer:
+    image: adminer
+    restart: always
+    ports:
+      - "8080:8080"
+    networks:
+      - main
+    depends_on:
+      - db
+
+volumes:
+  pgdata:
+
+networks:
+  main:
