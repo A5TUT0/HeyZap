@@ -32,6 +32,8 @@ client
     console.error("Error connecting to PostgreSQL database", err)
   );
 
+const activeUsers = new Map();
+
 const verifyToken = (req, res, next) => {
   const token = req.headers.authorization?.split(" ")[1];
   if (!token) {
@@ -134,6 +136,9 @@ io.use((socket, next) => {
 io.on("connection", async (socket) => {
   console.log("Usuario conectado:", socket.user.username);
 
+  activeUsers.set(socket.user.id, socket.user.username);
+  io.emit("active users", Array.from(activeUsers.values()));
+
   const messages = await client.query(
     "SELECT user_id, username, message AS content, created_at FROM messages ORDER BY created_at ASC"
   );
@@ -155,6 +160,8 @@ io.on("connection", async (socket) => {
 
   socket.on("disconnect", () => {
     console.log("Usuario desconectado:", socket.user.username);
+    activeUsers.delete(socket.user.id);
+    io.emit("active users", Array.from(activeUsers.values()));
   });
 });
 
