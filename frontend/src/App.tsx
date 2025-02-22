@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Route, Routes } from "react-router-dom";
 import Chat from "./components/Chat";
 import ListOfUserActive from "./components/ListOfUserActive";
 import Register from "./components/Register";
+import Login from "./components/Login";
 
 export default function App() {
   return (
@@ -21,6 +22,7 @@ export default function App() {
           }
         />
         <Route path="/register" element={<Register />} />
+        <Route path="/login" element={<Login />} />
       </Routes>
     </Router>
   );
