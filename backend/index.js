@@ -3,8 +3,11 @@ import express from "express";
 import { Server } from "socket.io";
 import { createServer } from "http";
 import dotenv from "dotenv";
-dotenv.config();
 import cors from "cors";
+import jwt from "jsonwebtoken";
+import bcrypt from "bcryptjs";
+
+dotenv.config();
 
 const client = new pg.Client({
   user: "admin",
@@ -15,66 +18,117 @@ const client = new pg.Client({
 });
 
 const port = process.env.PORT || 3000;
-
 const app = express();
 const server = createServer(app);
+const SECRET_KEY = process.env.JWT_SECRET || "supersecretkey";
 
-const io = new Server(server, {
-  connectionStateRecovery: {
-    maxDisconnectionDuration: 5000,
-  },
-  cors: {
-    origin: ["http://localhost:3000", "http://localhost:5173"],
-    methods: ["GET", "POST", "DELETE", "PUT"],
-    credentials: true,
-  },
-});
+// Middleware
+app.use(cors({ origin: "http://localhost:5173", credentials: true }));
+app.use(express.json()); // Para que Express pueda leer JSON
 
 client
   .connect()
-  .then(() => {
-    console.log("Connected to PostgreSQL database");
+  .then(() => console.log("Connected to PostgreSQL database"))
+  .catch((err) =>
+    console.error("Error connecting to PostgreSQL database", err)
+  );
 
-    // Execute SQL queries here
-
-    client.query("SELECT * FROM employees", (err, result) => {
-      if (err) {
-        console.error("Error executing query", err);
-      } else {
-        console.log("Query result:", result.rows);
-      }
-    });
-  })
-  .catch((err) => {
-    console.error("Error connecting to PostgreSQL database", err);
-  });
-
+// **Registro de Usuario**
 app.post("/register", async (req, res) => {
   const { username, email, password } = req.body;
 
-  const haschPassword = await bcrypt.hash(password, 10);
-
   try {
+    // Verifica si el usuario ya existe
+    const userExists = await client.query(
+      "SELECT * FROM users WHERE email = $1",
+      [email]
+    );
+    if (userExists.rows.length > 0) {
+      return res.status(400).json({ error: "El usuario ya está registrado" });
+    }
+
+    // Hashear contraseña
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Insertar usuario en la base de datos
     const result = await client.query(
-      "INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING *",
-      [username, email, haschPassword]
+      "INSERT INTO users (username, email, password) VALUES ($1, $2, $3) RETURNING id, username, email",
+      [username, email, hashedPassword]
     );
 
-    res.status(201).json(result.rows[0]);
+    // Generar Token JWT
+    const user = result.rows[0];
+    const token = jwt.sign(
+      { id: user.id, username: user.username, email: user.email },
+      SECRET_KEY,
+      { expiresIn: "1h" }
+    );
+
+    res.status(201).json({ token, user });
   } catch (err) {
     console.error("Error registering user", err);
-    res.status(500).json({ error: "An error occurred" });
+    res.status(500).json({ error: "Error al registrar usuario" });
   }
 });
 
-io.on("connection", (socket) => {
-  console.log("A user connected");
+// **Login de Usuario**
+app.post("/login", async (req, res) => {
+  const { email, password } = req.body;
 
-  socket.on("user connected", ({ userId, username, email }) => {
-    console.log("User connected", userId, username, email);
-  });
+  try {
+    const result = await client.query("SELECT * FROM users WHERE email = $1", [
+      email,
+    ]);
+
+    if (result.rows.length === 0) {
+      return res.status(400).json({ error: "Usuario no encontrado" });
+    }
+
+    const user = result.rows[0];
+
+    // Comparar contraseña
+    const validPassword = await bcrypt.compare(password, user.password);
+    if (!validPassword) {
+      return res.status(400).json({ error: "Contraseña incorrecta" });
+    }
+
+    // Generar token JWT
+    const token = jwt.sign(
+      { id: user.id, username: user.username, email: user.email },
+      SECRET_KEY,
+      { expiresIn: "1h" }
+    );
+
+    res.json({ token, user });
+  } catch (err) {
+    console.error("Error en el login", err);
+    res.status(500).json({ error: "Error en el login" });
+  }
 });
 
-server.listen(port, () => {
-  console.log(`Server is running on http://localhost:${port}`);
+// **Middleware para proteger rutas**
+const verifyToken = (req, res, next) => {
+  const token = req.headers.authorization?.split(" ")[1]; // Bearer Token
+
+  if (!token)
+    return res
+      .status(401)
+      .json({ error: "Acceso denegado, token no proporcionado" });
+
+  try {
+    const verified = jwt.verify(token, SECRET_KEY);
+    req.user = verified;
+    next();
+  } catch (err) {
+    res.status(400).json({ error: "Token inválido" });
+  }
+};
+
+// **Ruta protegida de ejemplo**
+app.get("/profile", verifyToken, (req, res) => {
+  res.json({ message: "Perfil de usuario", user: req.user });
 });
+
+server.listen(port, () =>
+  console.log(`Server running on http://localhost:${port}`)
+);
