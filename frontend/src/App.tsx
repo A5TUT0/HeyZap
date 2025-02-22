@@ -5,6 +5,7 @@ import Register from "./components/Register";
 import Login from "./components/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
 import UpdateUsername from "./components/UpdateUsername";
+import AIChat from "./components/AIChat"; // Importa el nuevo componente AIChat
 
 export default function App() {
   return (
@@ -15,7 +16,6 @@ export default function App() {
           element={
             <ProtectedRoute>
               <div className="h-screen flex items-center justify-center bg-gray-900">
-
                 <div className="absolute top-4 left-4">
                   <UpdateUsername />
                 </div>
@@ -28,6 +28,7 @@ export default function App() {
             </ProtectedRoute>
           }
         />
+        <Route path="/ai-chat" element={<AIChat />} />
         <Route path="/register" element={<Register />} />
         <Route path="/login" element={<Login />} />
       </Routes>

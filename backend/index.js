@@ -6,7 +6,6 @@ import authRoutes from "./routes/authRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 import socketHandler from "./socket/socketHandler.js";
 import { verifyToken } from "./config/auth.js";
-import aiChatRoutes from "./routes/aiChatRoutes.js";
 const port = process.env.PORT || 3000;
 const app = express();
 const server = createServer(app);
@@ -22,7 +21,6 @@ app.use(cors());
 app.use(express.json());
 app.use("/auth", authRoutes);
 app.use("/user", verifyToken, userRoutes);
-app.use("/ai", aiChatRoutes);
 socketHandler(io);
 
 server.listen(port, () =>
