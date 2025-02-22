@@ -1,53 +1,35 @@
 ## **Prerequisites**
 
-Before running the application, make sure you have installed:
-
 - **Docker** and **Docker Compose**
-- An updated and compatible web browser
+- Updated web browser
 
 ## **Installation and Execution**
 
 1. Clone the repository:
-
    ```sh
    git clone https://github.com/A5TUT0/HeyZap.git
    cd HeyZap
    ```
-
-2. Start the application with Docker Compose:
-
+2. Start the application with Docker:
    ```sh
    docker compose up
    ```
-
-3. Access the application:
+3. Access:
    - **Frontend:** `http://localhost:5173`
    - **Backend:** `http://localhost:3000`
-   - **MongoDB Compass:** Connect using `mongodb://localhost:27017/chatdb`
+   - **Adminer (DB Manager):** `http://localhost:8080`
 
-## **User Registration**
+## **Features**
 
-To use the application, an email is required. If you prefer not to use personal information, you can generate a temporary email through [Temp Mail](https://temp-mail.org/en/).  
-You can also use your real email, but it is not mandatory.
+✅ User registration and login  
+✅ Real-time chat with Socket.io  
+✅ Active users list  
+✅ Change username feature  
+✅ Messages stored in PostgreSQL  
+✅ JWT authentication and protection
 
 ## **Technologies Used**
 
-### **Frontend**
-
-- Vite
-- Tailwind CSS
-- Clerk.dev for authentication
-- Socket.io for real-time communication
-- Framer Motion for animations
-
-### **Backend**
-
-- Node.js
-- Socket.io for real-time communication
-- Express.js for API management
-- MongoDB as the database
-- Mongoose for data management
-
-### **Infrastructure**
-
-- Docker and Docker Compose for container orchestration
+- **Frontend:** Vite, Tailwind CSS, Socket.io, Clerk.dev, Framer Motion
+- **Backend:** Node.js, Express.js, PostgreSQL, JWT, Socket.io
+- **Infrastructure:** Docker, Docker Compose
