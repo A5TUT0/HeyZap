@@ -1,14 +1,14 @@
 import { useEffect, useState } from "react";
 import { io, Socket } from "socket.io-client";
 
-export default function ListOfUserActive() {
+export default function ListOfActiveUsers() {
     const [socket, setSocket] = useState<Socket | null>(null);
     const [activeUsers, setActiveUsers] = useState<string[]>([]);
 
     useEffect(() => {
         const token = localStorage.getItem("token");
         if (!token) {
-            console.error("No hay token, redirigiendo al login...");
+            console.error("No token found, redirecting to login...");
             return;
         }
 
@@ -27,7 +27,7 @@ export default function ListOfUserActive() {
     return (
         <div className="flex flex-col w-full max-w-lg h-[40vh] p-4 bg-gray-800 rounded-2xl shadow-lg">
             <div className="pb-2 border-b border-gray-700 mb-4 text-center">
-                <h2 className="text-xl font-bold text-white">Usuarios Activos</h2>
+                <h2 className="text-xl font-bold text-white">Active Users</h2>
             </div>
             <div className="flex-1 overflow-y-auto bg-gray-700 p-4 rounded-xl mb-4">
                 <ul>

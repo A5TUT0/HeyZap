@@ -37,9 +37,7 @@ const activeUsers = new Map();
 const verifyToken = (req, res, next) => {
   const token = req.headers.authorization?.split(" ")[1];
   if (!token) {
-    return res
-      .status(401)
-      .json({ error: "Acceso denegado, token no proporcionado" });
+    return res.status(401).json({ error: "Access denied, token not provided" });
   }
 
   try {
@@ -47,7 +45,7 @@ const verifyToken = (req, res, next) => {
     req.user = verified;
     next();
   } catch (err) {
-    res.status(400).json({ error: "Token inválido" });
+    res.status(400).json({ error: "Invalid token" });
   }
 };
 
@@ -59,7 +57,7 @@ app.post("/register", async (req, res) => {
       [email]
     );
     if (userExists.rows.length > 0) {
-      return res.status(400).json({ error: "El usuario ya está registrado" });
+      return res.status(400).json({ error: "User already registered" });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -78,7 +76,7 @@ app.post("/register", async (req, res) => {
     res.status(201).json({ token, user });
   } catch (err) {
     console.error("Error registering user", err);
-    res.status(500).json({ error: "Error al registrar usuario" });
+    res.status(500).json({ error: "Error registering user" });
   }
 });
 
@@ -89,13 +87,13 @@ app.post("/login", async (req, res) => {
       email,
     ]);
     if (result.rows.length === 0) {
-      return res.status(400).json({ error: "Usuario no encontrado" });
+      return res.status(400).json({ error: "User not found" });
     }
 
     const user = result.rows[0];
     const validPassword = await bcrypt.compare(password, user.password);
     if (!validPassword) {
-      return res.status(400).json({ error: "Contraseña incorrecta" });
+      return res.status(400).json({ error: "Incorrect password" });
     }
 
     const token = jwt.sign(
@@ -106,8 +104,8 @@ app.post("/login", async (req, res) => {
 
     res.json({ token, user });
   } catch (err) {
-    console.error("Error en el login", err);
-    res.status(500).json({ error: "Error en el login" });
+    console.error("Error during login", err);
+    res.status(500).json({ error: "Error during login" });
   }
 });
 
@@ -122,18 +120,19 @@ const io = new Server(server, {
 io.use((socket, next) => {
   const token = socket.handshake.auth.token;
   if (!token) {
-    return next(new Error("No autorizado"));
+    return next(new Error("Unauthorized"));
   }
   try {
     const user = jwt.verify(token, SECRET_KEY);
     socket.user = user;
     next();
   } catch (err) {
-    return next(new Error("Token inválido"));
+    return next(new Error("Invalid token"));
   }
 });
+
 io.on("connection", async (socket) => {
-  console.log("Usuario conectado:", socket.user.username);
+  console.log("User connected:", socket.user.username);
 
   activeUsers.set(socket.user.id, socket.user.username);
   io.emit("active users", Array.from(activeUsers.values()));
@@ -156,12 +155,12 @@ io.on("connection", async (socket) => {
       );
       io.emit("chat message", { user_id: id, username, content });
     } catch (err) {
-      console.error("Error al guardar mensaje en la base de datos", err);
+      console.error("Error saving message to database", err);
     }
   });
 
   socket.on("disconnect", () => {
-    console.log("Usuario desconectado:", socket.user.username);
+    console.log("User disconnected:", socket.user.username);
     activeUsers.delete(socket.user.id);
     io.emit("active users", Array.from(activeUsers.values()));
   });
@@ -170,14 +169,13 @@ io.on("connection", async (socket) => {
     socket.emit("previous messages", updatedMessages);
   });
 });
+
 app.put("/update-username", verifyToken, async (req, res) => {
   const { newUsername } = req.body;
   const userId = req.user.id;
 
   if (!newUsername) {
-    return res
-      .status(400)
-      .json({ error: "El nuevo nombre de usuario es requerido" });
+    return res.status(400).json({ error: "New username is required" });
   }
 
   try {
@@ -186,16 +184,13 @@ app.put("/update-username", verifyToken, async (req, res) => {
       [newUsername]
     );
     if (usernameExists.rows.length > 0) {
-      return res
-        .status(400)
-        .json({ error: "El nombre de usuario ya está en uso" });
+      return res.status(400).json({ error: "Username is already in use" });
     }
 
     await client.query("UPDATE users SET username = $1 WHERE id = $2", [
       newUsername,
       userId,
     ]);
-
     await client.query("UPDATE messages SET username = $1 WHERE user_id = $2", [
       newUsername,
       userId,
@@ -207,7 +202,6 @@ app.put("/update-username", verifyToken, async (req, res) => {
     );
 
     const user = updatedUser.rows[0];
-
     const newToken = jwt.sign(
       { id: user.id, username: user.username, email: user.email },
       SECRET_KEY,
@@ -225,13 +219,13 @@ app.put("/update-username", verifyToken, async (req, res) => {
     io.emit("update messages", updatedMessages.rows);
 
     res.json({
-      message: "Nombre de usuario actualizado correctamente",
+      message: "Username updated successfully",
       newUsername: user.username,
       token: newToken,
     });
   } catch (err) {
-    console.error("Error al actualizar el nombre de usuario", err);
-    res.status(500).json({ error: "Error al actualizar el nombre de usuario" });
+    console.error("Error updating username", err);
+    res.status(500).json({ error: "Error updating username" });
   }
 });
 

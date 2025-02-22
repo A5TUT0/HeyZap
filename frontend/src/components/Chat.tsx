@@ -12,7 +12,7 @@ export default function Chat() {
     useEffect(() => {
         const token = localStorage.getItem("token");
         if (!token) {
-            console.error("No hay token, redirigiendo al login...");
+            console.error("No token found, redirecting to login...");
             return;
         }
 
@@ -71,8 +71,8 @@ export default function Chat() {
             </div>
 
             <form onSubmit={sendMessage} className="flex items-center space-x-2">
-                <input type="text" value={message} onChange={(e) => setMessage(e.target.value)} className="flex-1 p-2 bg-gray-700 text-white border rounded-full" placeholder="Escribe un mensaje..." />
-                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-full">Enviar</button>
+                <input type="text" value={message} onChange={(e) => setMessage(e.target.value)} className="flex-1 p-2 bg-gray-700 text-white border rounded-full" placeholder="Type a message..." />
+                <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-full">Send</button>
             </form>
         </div>
     );

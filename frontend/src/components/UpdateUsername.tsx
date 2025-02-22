@@ -14,7 +14,7 @@ export default function UpdateUsername() {
 
         const token = localStorage.getItem("token");
         if (!token) {
-            setError("No estás autenticado.");
+            setError("You are not authenticated.");
             return;
         }
 
@@ -30,17 +30,20 @@ export default function UpdateUsername() {
 
             const data = await response.json();
             if (!response.ok) {
-                throw new Error(data.error || "Error al actualizar el nombre de usuario");
+                throw new Error(data.error || "Error updating username");
             }
 
-            // Guardar el nuevo token y datos actualizados
             localStorage.setItem("token", data.token);
-            localStorage.setItem("user", JSON.stringify({ id: JSON.parse(localStorage.getItem("user") || "{}").id, username: data.newUsername, email: JSON.parse(localStorage.getItem("user") || "{}").email }));
+            localStorage.setItem("user", JSON.stringify({
+                id: JSON.parse(localStorage.getItem("user") || "{}").id,
+                username: data.newUsername,
+                email: JSON.parse(localStorage.getItem("user") || "{}").email
+            }));
 
-            setMessage("Nombre de usuario actualizado correctamente. Redirigiendo...");
+            setMessage("Username updated successfully. Redirecting...");
 
             setTimeout(() => {
-                window.location.reload(); // Recargar para que el usuario use el nuevo token
+                window.location.reload();
             }, 1500);
 
         } catch (err) {
@@ -50,7 +53,7 @@ export default function UpdateUsername() {
 
     return (
         <div className="flex flex-col w-full max-w-lg p-4 bg-gray-800 rounded-2xl shadow-lg">
-            <h2 className="text-xl font-bold text-white text-center mb-4">Actualizar Nombre de Usuario</h2>
+            <h2 className="text-xl font-bold text-white text-center mb-4">Update Username</h2>
 
             {message && <p className="text-green-500 text-sm mb-2">{message}</p>}
             {error && <p className="text-red-500 text-sm mb-2">{error}</p>}
@@ -58,14 +61,14 @@ export default function UpdateUsername() {
             <form onSubmit={handleUpdateUsername} className="flex flex-col">
                 <input
                     type="text"
-                    placeholder="Nuevo nombre de usuario"
+                    placeholder="New username"
                     value={newUsername}
                     onChange={(e) => setNewUsername(e.target.value)}
                     className="p-2 mb-2 bg-gray-700 text-white rounded"
                     required
                 />
                 <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded">
-                    Actualizar
+                    Update
                 </button>
             </form>
         </div>
