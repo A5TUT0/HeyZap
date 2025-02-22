@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
-export default function Login() {
-    const [formData, setFormData] = useState({ email: "", password: "" });
+export default function Register() {
+    const [formData, setFormData] = useState({ username: "", email: "", password: "" });
     const [error, setError] = useState("");
     const navigate = useNavigate();
 
@@ -15,13 +15,13 @@ export default function Login() {
         setError("");
 
         try {
-            const response = await fetch("http://localhost:3000/login", {
+            const response = await fetch("http://localhost:3000/auth/register", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(formData),
             });
 
-            if (!response.ok) throw new Error("Incorrect email or password");
+            if (!response.ok) throw new Error("Error registering the user");
 
             const data = await response.json();
             localStorage.setItem("token", data.token);
@@ -29,18 +29,27 @@ export default function Login() {
 
             navigate("/");
         } catch {
-            setError("Login failed. Please check your credentials.");
+            setError("Registration failed. Please try again.");
         }
     };
 
     return (
         <div className="h-screen flex items-center justify-center bg-gray-900">
             <div className="bg-gray-800 p-8 rounded-lg shadow-xl w-96">
-                <h2 className="text-white text-3xl font-bold mb-4 text-center">Log In</h2>
+                <h2 className="text-white text-3xl font-bold mb-4 text-center">Register</h2>
 
                 {error && <p className="text-red-500 text-sm text-center mb-2">{error}</p>}
 
                 <form onSubmit={handleSubmit} className="flex flex-col">
+                    <input
+                        type="text"
+                        name="username"
+                        placeholder="Username"
+                        value={formData.username}
+                        onChange={handleChange}
+                        className="p-3 mb-3 bg-gray-700 text-white rounded"
+                        required
+                    />
                     <input
                         type="email"
                         name="email"
@@ -60,14 +69,14 @@ export default function Login() {
                         required
                     />
                     <button type="submit" className="bg-blue-600 hover:bg-blue-700 text-white py-2 rounded font-semibold">
-                        Log In
+                        Register
                     </button>
                 </form>
 
                 <p className="text-gray-400 text-center mt-4">
-                    Don't have an account?{" "}
-                    <button onClick={() => navigate("/register")} className="text-blue-400 hover:text-blue-500 underline">
-                        Sign up here
+                    Already have an account?{" "}
+                    <button onClick={() => navigate("/login")} className="text-blue-400 hover:text-blue-500 underline">
+                        Log in here
                     </button>
                 </p>
             </div>

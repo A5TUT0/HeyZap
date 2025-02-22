@@ -19,7 +19,7 @@ export default function UpdateUsername() {
         }
 
         try {
-            const response = await fetch("http://localhost:3000/update-username", {
+            const response = await fetch("http://localhost:3000/user/update-username", {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
