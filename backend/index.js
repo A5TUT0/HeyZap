@@ -132,7 +132,6 @@ io.use((socket, next) => {
     return next(new Error("Token inválido"));
   }
 });
-
 io.on("connection", async (socket) => {
   console.log("Usuario conectado:", socket.user.username);
 
@@ -140,7 +139,10 @@ io.on("connection", async (socket) => {
   io.emit("active users", Array.from(activeUsers.values()));
 
   const messages = await client.query(
-    "SELECT user_id, username, message AS content, created_at FROM messages ORDER BY created_at ASC"
+    `SELECT m.user_id, u.username, m.message AS content, m.created_at 
+     FROM messages m
+     JOIN users u ON m.user_id = u.id
+     ORDER BY m.created_at ASC`
   );
   socket.emit("previous messages", messages.rows);
 
@@ -163,6 +165,74 @@ io.on("connection", async (socket) => {
     activeUsers.delete(socket.user.id);
     io.emit("active users", Array.from(activeUsers.values()));
   });
+
+  socket.on("update messages", (updatedMessages) => {
+    socket.emit("previous messages", updatedMessages);
+  });
+});
+app.put("/update-username", verifyToken, async (req, res) => {
+  const { newUsername } = req.body;
+  const userId = req.user.id;
+
+  if (!newUsername) {
+    return res
+      .status(400)
+      .json({ error: "El nuevo nombre de usuario es requerido" });
+  }
+
+  try {
+    const usernameExists = await client.query(
+      "SELECT * FROM users WHERE username = $1",
+      [newUsername]
+    );
+    if (usernameExists.rows.length > 0) {
+      return res
+        .status(400)
+        .json({ error: "El nombre de usuario ya está en uso" });
+    }
+
+    await client.query("UPDATE users SET username = $1 WHERE id = $2", [
+      newUsername,
+      userId,
+    ]);
+
+    await client.query("UPDATE messages SET username = $1 WHERE user_id = $2", [
+      newUsername,
+      userId,
+    ]);
+
+    const updatedUser = await client.query(
+      "SELECT id, username, email FROM users WHERE id = $1",
+      [userId]
+    );
+
+    const user = updatedUser.rows[0];
+
+    const newToken = jwt.sign(
+      { id: user.id, username: user.username, email: user.email },
+      SECRET_KEY,
+      { expiresIn: "1h" }
+    );
+
+    if (activeUsers.has(userId)) {
+      activeUsers.set(userId, newUsername);
+      io.emit("active users", Array.from(activeUsers.values()));
+    }
+
+    const updatedMessages = await client.query(
+      "SELECT user_id, username, message AS content, created_at FROM messages ORDER BY created_at ASC"
+    );
+    io.emit("update messages", updatedMessages.rows);
+
+    res.json({
+      message: "Nombre de usuario actualizado correctamente",
+      newUsername: user.username,
+      token: newToken,
+    });
+  } catch (err) {
+    console.error("Error al actualizar el nombre de usuario", err);
+    res.status(500).json({ error: "Error al actualizar el nombre de usuario" });
+  }
 });
 
 server.listen(port, () =>

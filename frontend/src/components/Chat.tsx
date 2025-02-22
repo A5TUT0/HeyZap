@@ -29,6 +29,10 @@ export default function Chat() {
             setTimeout(scrollToBottom, 100);
         });
 
+        newSocket.on("update messages", (updatedMessages) => {
+            setMessages(updatedMessages);
+        });
+
         return () => {
             newSocket.close();
         };
