@@ -1,6 +1,6 @@
 services:
   frontend:
-    image: astut0/frontend:latest # Usar la imagen de Docker Hub
+    image: astut0/frontend:latest
     ports:
       - "5173:5173"
     networks:
@@ -10,7 +10,7 @@ services:
       - db
 
   backend:
-    image: astut0/backend:latest # Usar la imagen de Docker Hub
+    image: astut0/backend:latest
     ports:
       - "3000:3000"
     networks:
