@@ -1,6 +1,6 @@
 services:
   frontend:
-    build: ./frontend
+    image: astut0/frontend:latest # Usar la imagen de Docker Hub
     ports:
       - "5173:5173"
     networks:
@@ -8,8 +8,9 @@ services:
     depends_on:
       - backend
       - db
+
   backend:
-    build: ./backend
+    image: astut0/backend:latest # Usar la imagen de Docker Hub
     ports:
       - "3000:3000"
     networks:
@@ -24,6 +25,7 @@ services:
     depends_on:
       db:
         condition: service_healthy
+
   db:
     image: postgres:15
     restart: always
@@ -52,6 +54,7 @@ services:
       - main
     depends_on:
       - db
+
 volumes:
   pgdata:
 
