@@ -23,7 +23,7 @@ export default function IAChat() {
                 {
                     method: "POST",
                     headers: {
-                        Authorization: `Bearer API_TOKEN`,
+                        Authorization: `Bearer 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`,
                         "Content-Type": "application/json",
                     },
                     body: JSON.stringify({
