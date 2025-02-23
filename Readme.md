@@ -1,3 +1,7 @@
+# Bonuspunkte
+
+- **AIChatBot**
+
 ## **Prerequisites**
 
 - **Docker** and **Docker Compose**

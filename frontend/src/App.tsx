@@ -5,7 +5,7 @@ import Register from "./components/Register";
 import Login from "./components/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
 import UpdateUsername from "./components/UpdateUsername";
-import AIChat from "./components/AIChat"; // Importa el nuevo componente AIChat
+import AIChat from "./components/AIChat";
 
 export default function App() {
   return (
