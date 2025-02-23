@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function IAChat() {
@@ -8,10 +8,16 @@ export default function IAChat() {
     });
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
+    const messagesEndRef = useRef<HTMLDivElement>(null);
 
     useEffect(() => {
         localStorage.setItem("aiChatHistory", JSON.stringify(chatHistory));
+        scrollToBottom();
     }, [chatHistory]);
+
+    const scrollToBottom = () => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    };
 
     const handleGenerate = async () => {
         if (!input) return;
@@ -42,7 +48,9 @@ export default function IAChat() {
             }
         } catch (error) {
             console.error("Error generating response:", error);
+            setChatHistory([...chatHistory, { role: "assistant", content: "AI model is still loading... Please wait a moment and try again." }]);
         }
+
         setLoading(false);
         setInput("");
     };
@@ -53,10 +61,12 @@ export default function IAChat() {
                 onClick={() => navigate("/")}
                 className="mb-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 self-start"
             >
-                Volver al Chat
+                Back to Chat
             </button>
+
             <div className="flex flex-col flex-grow w-full max-w-2xl mx-auto bg-gray-800 p-4 rounded-lg shadow-md">
-                <div className="flex-1 overflow-y-auto space-y-2 p-2">
+
+                <div className="flex-1 max-h-[500px] overflow-y-auto space-y-2 p-2 border-b border-gray-700">
                     {chatHistory.map((msg, idx) => (
                         <div key={idx} className={`flex w-full ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                             <div className={`p-3 max-w-[70%] rounded-lg ${msg.role === "user" ? "bg-blue-500" : "bg-gray-600"}`}>
@@ -64,22 +74,29 @@ export default function IAChat() {
                             </div>
                         </div>
                     ))}
+                    <div ref={messagesEndRef} />
                 </div>
-                <div className="mt-4 flex items-center space-x-2 border-t border-gray-700 p-2">
-                    <input
-                        type="text"
-                        value={input}
-                        onChange={(e) => setInput(e.target.value)}
-                        placeholder="Escribe un mensaje..."
-                        className="flex-1 p-2 bg-gray-700 text-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                    />
-                    <button
-                        onClick={handleGenerate}
-                        disabled={loading}
-                        className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
-                    >
-                        {loading ? "Generando..." : "Enviar"}
-                    </button>
+
+                <div className="sticky bottom-0 w-full bg-gray-800 p-4 border-t border-gray-700">
+                    <div className="flex items-center space-x-2">
+                        <input
+                            type="text"
+                            value={input}
+                            onChange={(e) => setInput(e.target.value)}
+                            placeholder="Type a message..."
+                            className="flex-1 p-2 bg-gray-700 text-white border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                        <button
+                            onClick={handleGenerate}
+                            disabled={loading}
+                            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400"
+                        >
+                            {loading ? "Generating..." : "Send"}
+                        </button>
+                    </div>
+                    <p className="text-sm text-gray-400 text-center mt-2">
+                        If no response is received, the AI model is still loading. Please wait and try again.
+                    </p>
                 </div>
             </div>
         </div>
