@@ -25,15 +25,13 @@ router.put("/update-username", verifyToken, async (req, res) => {
       return res.status(400).json({ error: "Username is already in use" });
     }
 
+    // Actualizar solo en la tabla de users
     await client.query("UPDATE users SET username = $1 WHERE id = $2", [
       newUsername,
       userId,
     ]);
-    await client.query("UPDATE messages SET username = $1 WHERE user_id = $2", [
-      newUsername,
-      userId,
-    ]);
 
+    // Obtener el usuario actualizado
     const updatedUser = await client.query(
       "SELECT id, username, email FROM users WHERE id = $1",
       [userId]

@@ -36,23 +36,39 @@ export default function socketHandler(io) {
     io.emit("active users", Array.from(activeUsers.values()));
 
     const messages = await client.query(
-      `SELECT m.user_id, u.username, m.message AS content, m.created_at 
+      `SELECT m.sender_id, u.username, m.message AS content, m.created_at 
        FROM messages m
-       JOIN users u ON m.user_id = u.id
+       JOIN users u ON m.sender_id = u.id
        ORDER BY m.created_at ASC`
     );
+
     socket.emit("previous messages", messages.rows);
 
     socket.on("chat message", async (data) => {
       const { content } = data;
-      const { id, username } = socket.user;
+      const { id } = socket.user;
 
       try {
-        await client.query(
-          "INSERT INTO messages (user_id, username, message) VALUES ($1, $2, $3)",
-          [id, username, content]
+        // Verificar si el usuario con id existe en la tabla users
+        const userCheck = await client.query(
+          "SELECT id FROM users WHERE id = $1",
+          [id]
         );
-        io.emit("chat message", { user_id: id, username, content });
+        if (userCheck.rows.length === 0) {
+          console.error("User does not exist in the database.");
+          return socket.emit("chat message error", {
+            error: "User does not exist.",
+          });
+        }
+
+        // Insertar el sender_id (que es el ID del usuario que envía el mensaje) y el contenido del mensaje
+        await client.query(
+          "INSERT INTO messages (sender_id, message) VALUES ($1, $2)",
+          [id, content]
+        );
+
+        // Emitir el mensaje sin username, ya que lo puedes obtener desde la base de datos
+        io.emit("chat message", { sender_id: id, content });
       } catch (err) {
         console.error("Error saving message", err);
       }
