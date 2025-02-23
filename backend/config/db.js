@@ -16,9 +16,7 @@ client
   .then(() => {
     console.log("Connected to PostgreSQL database");
 
-    // Crear las tablas si no existen
     const createQueries = [
-      // Crear la tabla de usuarios
       `CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
         username VARCHAR(100) NOT NULL UNIQUE,
@@ -28,7 +26,6 @@ client
         updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
       );`,
 
-      // Crear la tabla de mensajes entre usuarios (publicos)
       `CREATE TABLE IF NOT EXISTS messages (
         id SERIAL PRIMARY KEY,
         sender_id INT NOT NULL,
@@ -39,7 +36,6 @@ client
         CONSTRAINT fk_recipient FOREIGN KEY (recipient_id) REFERENCES users(id) ON DELETE CASCADE
       );`,
 
-      // Crear la tabla de mensajes privados entre usuarios
       `CREATE TABLE IF NOT EXISTS private_messages (
         id SERIAL PRIMARY KEY,
         sender_id INT NOT NULL,
@@ -51,7 +47,6 @@ client
       );`,
     ];
 
-    // Ejecutar las consultas para crear las tablas si no existen
     return Promise.all(createQueries.map((query) => client.query(query)));
   })
   .then(() => {

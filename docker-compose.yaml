@@ -7,6 +7,7 @@ services:
       - main
     depends_on:
       - backend
+      - db
   backend:
     build: ./backend
     ports:
@@ -21,7 +22,8 @@ services:
       - DB_NAME=heyzap
       - JWT_SECRET=supersecretkey
     depends_on:
-      - db
+      db:
+        condition: service_healthy
   db:
     image: postgres:15
     restart: always
@@ -35,6 +37,11 @@ services:
       - main
     volumes:
       - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin -d heyzap"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
 
   adminer:
     image: adminer
