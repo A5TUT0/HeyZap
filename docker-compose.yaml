@@ -7,7 +7,6 @@ services:
       - main
     depends_on:
       - backend
-
   backend:
     build: ./backend
     ports:
@@ -16,11 +15,15 @@ services:
       - main
     environment:
       - DB_HOST=db
+      - DB_PORT=5432
+      - DB_USER=admin
+      - DB_PASSWORD=123456
+      - DB_NAME=heyzap
+      - JWT_SECRET=supersecretkey
     depends_on:
       - db
-
   db:
-    image: postgres:latest
+    image: postgres:15
     restart: always
     ports:
       - "5432:5432"
@@ -42,7 +45,6 @@ services:
       - main
     depends_on:
       - db
-
 volumes:
   pgdata:
 
