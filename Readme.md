@@ -23,6 +23,13 @@
    - **Backend:** `http://localhost:3000`
    - **Adminer (DB Manager):** `http://localhost:8080`
 
+## **Docker Hub Images**
+
+The application uses the following pre-built Docker images from Docker Hub:
+
+- **Backend:** `astut0/backend:latest`
+- **Frontend:** `astut0/frontend:latest`
+
 ## **Features**
 
 ✅ User registration and login  
