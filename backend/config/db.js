@@ -34,17 +34,7 @@ client
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         CONSTRAINT fk_sender FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
         CONSTRAINT fk_recipient FOREIGN KEY (recipient_id) REFERENCES users(id) ON DELETE CASCADE
-      );`,
-
-      `CREATE TABLE IF NOT EXISTS private_messages (
-        id SERIAL PRIMARY KEY,
-        sender_id INT NOT NULL,
-        recipient_id INT NOT NULL,
-        message TEXT NOT NULL,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-        CONSTRAINT fk_sender FOREIGN KEY (sender_id) REFERENCES users(id) ON DELETE CASCADE,
-        CONSTRAINT fk_recipient FOREIGN KEY (recipient_id) REFERENCES users(id) ON DELETE CASCADE
-      );`,
+      );`
     ];
 
     return Promise.all(createQueries.map((query) => client.query(query)));
